@@ -198,6 +198,13 @@ internal extension ESTabBar /* Layout */ {
 
         let safeCount = min(tabBarItems.count, tabBarButtons.count, containers.count)
 
+        // Important: hide all system UITabBarButton views first.
+        // Otherwise leftover UIKit buttons/icons can appear clipped on the left.
+        for button in tabBarButtons {
+            button.isHidden = true
+            button.alpha = 0.0
+        }
+
         guard safeCount > 0 else {
             return
         }
@@ -205,6 +212,7 @@ internal extension ESTabBar /* Layout */ {
         if isCustomizing {
             for idx in 0..<safeCount {
                 tabBarButtons[idx].isHidden = false
+                tabBarButtons[idx].alpha = 1.0
                 moreContentView?.isHidden = true
             }
 
@@ -217,17 +225,21 @@ internal extension ESTabBar /* Layout */ {
 
                 if item is ESTabBarItem {
                     tabBarButtons[idx].isHidden = true
+                    tabBarButtons[idx].alpha = 0.0
                 } else {
                     tabBarButtons[idx].isHidden = false
+                    tabBarButtons[idx].alpha = 1.0
                 }
 
                 if isMoreItem(idx), moreContentView != nil {
                     tabBarButtons[idx].isHidden = true
+                    tabBarButtons[idx].alpha = 0.0
                 }
             }
 
             for container in containers {
                 container.isHidden = false
+                container.alpha = 1.0
             }
         }
 
@@ -262,7 +274,7 @@ internal extension ESTabBar /* Layout */ {
 
             let width = bounds.size.width - itemEdgeInsets.left - itemEdgeInsets.right
             let height = bounds.size.height - y - itemEdgeInsets.bottom
-            let eachWidth = itemWidth == 0.0 ? width / CGFloat(containers.count) : itemWidth
+            let eachWidth = itemWidth == 0.0 ? width / CGFloat(max(containers.count, 1)) : itemWidth
             let eachSpacing = itemSpacing == 0.0 ? 0.0 : itemSpacing
 
             for container in containers {
