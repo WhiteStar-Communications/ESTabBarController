@@ -232,16 +232,25 @@ internal extension ESTabBar /* Layout */ {
 
         if layoutBaseSystem {
             let count = max(containers.count, 1)
-            let width = bounds.size.width / CGFloat(count)
-            let height = bounds.size.height
-
-            for (idx, container) in containers.enumerated() {
+            
+            let xStart = itemEdgeInsets.left
+            let y = itemEdgeInsets.top
+            let width = bounds.size.width - itemEdgeInsets.left - itemEdgeInsets.right
+            let height = bounds.size.height - itemEdgeInsets.top - itemEdgeInsets.bottom
+            let eachWidth = itemWidth == 0.0 ? width / CGFloat(count) : itemWidth
+            let eachSpacing = itemSpacing == 0.0 ? 0.0 : itemSpacing
+            
+            var x = xStart
+            
+            for container in containers {
                 container.frame = CGRect(
-                    x: CGFloat(idx) * width,
-                    y: 0,
-                    width: width,
+                    x: x,
+                    y: y,
+                    width: eachWidth,
                     height: height
                 )
+                
+                x += eachWidth + eachSpacing
             }
         } else {
             var x: CGFloat = itemEdgeInsets.left
