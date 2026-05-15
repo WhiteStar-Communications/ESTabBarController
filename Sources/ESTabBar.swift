@@ -186,40 +186,51 @@ internal extension ESTabBar /* Layout */ {
             ESTabBarController.printError("empty items")
             return
         }
-        
+
         let tabBarButtons = subviews.filter { subview -> Bool in
             if let cls = NSClassFromString("UITabBarButton") {
                 return subview.isKind(of: cls)
             }
             return false
-            } .sorted { (subview1, subview2) -> Bool in
-                return subview1.frame.origin.x < subview2.frame.origin.x
+        }.sorted {
+            $0.frame.origin.x < $1.frame.origin.x
         }
-        
+
+        let safeCount = min(tabBarItems.count, tabBarButtons.count, containers.count)
+
+        guard safeCount > 0 else {
+            return
+        }
+
         if isCustomizing {
-            for (idx, _) in tabBarItems.enumerated() {
+            for idx in 0..<safeCount {
                 tabBarButtons[idx].isHidden = false
                 moreContentView?.isHidden = true
             }
-            for (_, container) in containers.enumerated(){
+
+            for container in containers {
                 container.isHidden = true
             }
         } else {
-            for (idx, item) in tabBarItems.enumerated() {
-                if let _ = item as? ESTabBarItem {
+            for idx in 0..<safeCount {
+                let item = tabBarItems[idx]
+
+                if item is ESTabBarItem {
                     tabBarButtons[idx].isHidden = true
                 } else {
                     tabBarButtons[idx].isHidden = false
                 }
-                if isMoreItem(idx), let _ = moreContentView {
+
+                if isMoreItem(idx), moreContentView != nil {
                     tabBarButtons[idx].isHidden = true
                 }
             }
-            for (_, container) in containers.enumerated(){
+
+            for container in containers {
                 container.isHidden = false
             }
         }
-        
+
         var layoutBaseSystem = true
         if let itemCustomPositioning = itemCustomPositioning {
             switch itemCustomPositioning {
@@ -229,18 +240,17 @@ internal extension ESTabBar /* Layout */ {
                 layoutBaseSystem = false
             }
         }
-        
+
         if layoutBaseSystem {
-            // System itemPositioning
-            for (idx, container) in containers.enumerated(){
+            for idx in 0..<safeCount {
                 if !tabBarButtons[idx].frame.isEmpty {
-                    container.frame = tabBarButtons[idx].frame
+                    containers[idx].frame = tabBarButtons[idx].frame
                 }
             }
         } else {
-            // Custom itemPositioning
             var x: CGFloat = itemEdgeInsets.left
             var y: CGFloat = itemEdgeInsets.top
+
             switch itemCustomPositioning! {
             case .fillExcludeSeparator:
                 if y <= 0.0 {
@@ -249,15 +259,15 @@ internal extension ESTabBar /* Layout */ {
             default:
                 break
             }
+
             let width = bounds.size.width - itemEdgeInsets.left - itemEdgeInsets.right
             let height = bounds.size.height - y - itemEdgeInsets.bottom
             let eachWidth = itemWidth == 0.0 ? width / CGFloat(containers.count) : itemWidth
             let eachSpacing = itemSpacing == 0.0 ? 0.0 : itemSpacing
-            
+
             for container in containers {
-                container.frame = CGRect.init(x: x, y: y, width: eachWidth, height: height)
-                x += eachWidth
-                x += eachSpacing
+                container.frame = CGRect(x: x, y: y, width: eachWidth, height: height)
+                x += eachWidth + eachSpacing
             }
         }
     }
