@@ -196,51 +196,28 @@ internal extension ESTabBar /* Layout */ {
             $0.frame.origin.x < $1.frame.origin.x
         }
 
-        let safeCount = min(tabBarItems.count, tabBarButtons.count, containers.count)
-
-        // Important: hide all system UITabBarButton views first.
-        // Otherwise leftover UIKit buttons/icons can appear clipped on the left.
+        // Hide UIKit's private/system tab bar buttons.
+        // ESTabBarItem uses its own custom containers.
         for button in tabBarButtons {
             button.isHidden = true
-            button.alpha = 0.0
-        }
-
-        guard safeCount > 0 else {
-            return
         }
 
         if isCustomizing {
-            for idx in 0..<safeCount {
-                tabBarButtons[idx].isHidden = false
-                tabBarButtons[idx].alpha = 1.0
-                moreContentView?.isHidden = true
+            for button in tabBarButtons {
+                button.isHidden = false
             }
+
+            moreContentView?.isHidden = true
 
             for container in containers {
                 container.isHidden = true
             }
-        } else {
-            for idx in 0..<safeCount {
-                let item = tabBarItems[idx]
 
-                if item is ESTabBarItem {
-                    tabBarButtons[idx].isHidden = true
-                    tabBarButtons[idx].alpha = 0.0
-                } else {
-                    tabBarButtons[idx].isHidden = false
-                    tabBarButtons[idx].alpha = 1.0
-                }
+            return
+        }
 
-                if isMoreItem(idx), moreContentView != nil {
-                    tabBarButtons[idx].isHidden = true
-                    tabBarButtons[idx].alpha = 0.0
-                }
-            }
-
-            for container in containers {
-                container.isHidden = false
-                container.alpha = 1.0
-            }
+        for container in containers {
+            container.isHidden = false
         }
 
         var layoutBaseSystem = true
@@ -254,10 +231,17 @@ internal extension ESTabBar /* Layout */ {
         }
 
         if layoutBaseSystem {
-            for idx in 0..<safeCount {
-                if !tabBarButtons[idx].frame.isEmpty {
-                    containers[idx].frame = tabBarButtons[idx].frame
-                }
+            let count = max(containers.count, 1)
+            let width = bounds.size.width / CGFloat(count)
+            let height = bounds.size.height
+
+            for (idx, container) in containers.enumerated() {
+                container.frame = CGRect(
+                    x: CGFloat(idx) * width,
+                    y: 0,
+                    width: width,
+                    height: height
+                )
             }
         } else {
             var x: CGFloat = itemEdgeInsets.left
