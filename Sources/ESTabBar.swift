@@ -199,12 +199,22 @@ internal extension ESTabBar /* Layout */ {
         // Hide UIKit's private/system tab bar buttons.
         // ESTabBarItem uses its own custom containers.
         for button in tabBarButtons {
-            button.isHidden = true
+            button.isHidden = false
+
+            for subview in button.subviews {
+                subview.isHidden = true
+                subview.alpha = 0.0
+            }
         }
 
         if isCustomizing {
             for button in tabBarButtons {
                 button.isHidden = false
+
+                for subview in button.subviews {
+                    subview.isHidden = false
+                    subview.alpha = 1.0
+                }
             }
 
             moreContentView?.isHidden = true
@@ -234,7 +244,7 @@ internal extension ESTabBar /* Layout */ {
             let count = max(containers.count, 1)
             
             let xStart = itemEdgeInsets.left
-            let y = itemEdgeInsets.top
+            let y = itemEdgeInsets.top - 4
             let width = bounds.size.width - itemEdgeInsets.left - itemEdgeInsets.right
             let height = bounds.size.height - itemEdgeInsets.top - itemEdgeInsets.bottom
             let eachWidth = itemWidth == 0.0 ? width / CGFloat(count) : itemWidth
