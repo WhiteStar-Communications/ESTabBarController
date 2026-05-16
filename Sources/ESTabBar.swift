@@ -180,14 +180,13 @@ open class ESTabBar: UITabBar {
 }
 
 internal extension ESTabBar /* Layout */ {
-    
     func updateLayout() {
-        guard let tabBarItems = self.items else {
+        guard self.items != nil else {
             ESTabBarController.printError("empty items")
             return
         }
 
-        let tabBarButtons = subviews.filter { subview -> Bool in
+        let tabBarButtons = subviews.filter { subview in
             if let cls = NSClassFromString("UITabBarButton") {
                 return subview.isKind(of: cls)
             }
@@ -196,38 +195,29 @@ internal extension ESTabBar /* Layout */ {
             $0.frame.origin.x < $1.frame.origin.x
         }
 
-        // Hide UIKit's private/system tab bar buttons.
-        // ESTabBarItem uses its own custom containers.
-        for button in tabBarButtons {
-            button.isHidden = false
-
-            for subview in button.subviews {
-                subview.isHidden = true
-                subview.alpha = 0.0
+        if isCustomizing {
+            tabBarButtons.forEach {
+                $0.isHidden = false
+                $0.alpha = 1.0
+                $0.isUserInteractionEnabled = true
             }
+
+            containers.forEach { $0.isHidden = true }
+            moreContentView?.isHidden = true
+            return
         }
 
-        if isCustomizing {
-            for button in tabBarButtons {
-                button.isHidden = false
-
-                for subview in button.subviews {
-                    subview.isHidden = false
-                    subview.alpha = 1.0
-                }
-            }
-
-            moreContentView?.isHidden = true
-
-            for container in containers {
-                container.isHidden = true
-            }
-
-            return
+        // Hide UIKit's private/system tab bar buttons completely.
+        for button in tabBarButtons {
+            button.isHidden = true
+            button.alpha = 0.0
+            button.isUserInteractionEnabled = false
         }
 
         for container in containers {
             container.isHidden = false
+            container.alpha = 1.0
+            container.isUserInteractionEnabled = true
         }
 
         var layoutBaseSystem = true
@@ -242,41 +232,29 @@ internal extension ESTabBar /* Layout */ {
 
         if layoutBaseSystem {
             let count = max(containers.count, 1)
-            
             let xStart = itemEdgeInsets.left
             let y = itemEdgeInsets.top - 4
-            let width = bounds.size.width - itemEdgeInsets.left - itemEdgeInsets.right
-            let height = bounds.size.height - itemEdgeInsets.top - itemEdgeInsets.bottom
+            let width = bounds.width - itemEdgeInsets.left - itemEdgeInsets.right
+            let height = bounds.height - itemEdgeInsets.top - itemEdgeInsets.bottom
             let eachWidth = itemWidth == 0.0 ? width / CGFloat(count) : itemWidth
             let eachSpacing = itemSpacing == 0.0 ? 0.0 : itemSpacing
-            
+
             var x = xStart
-            
+
             for container in containers {
-                container.frame = CGRect(
-                    x: x,
-                    y: y,
-                    width: eachWidth,
-                    height: height
-                )
-                
+                container.frame = CGRect(x: x, y: y, width: eachWidth, height: height)
                 x += eachWidth + eachSpacing
             }
         } else {
-            var x: CGFloat = itemEdgeInsets.left
-            var y: CGFloat = itemEdgeInsets.top
+            var x = itemEdgeInsets.left
+            var y = itemEdgeInsets.top
 
-            switch itemCustomPositioning! {
-            case .fillExcludeSeparator:
-                if y <= 0.0 {
-                    y += 1.0
-                }
-            default:
-                break
+            if itemCustomPositioning == .fillExcludeSeparator, y <= 0.0 {
+                y += 1.0
             }
 
-            let width = bounds.size.width - itemEdgeInsets.left - itemEdgeInsets.right
-            let height = bounds.size.height - y - itemEdgeInsets.bottom
+            let width = bounds.width - itemEdgeInsets.left - itemEdgeInsets.right
+            let height = bounds.height - y - itemEdgeInsets.bottom
             let eachWidth = itemWidth == 0.0 ? width / CGFloat(max(containers.count, 1)) : itemWidth
             let eachSpacing = itemSpacing == 0.0 ? 0.0 : itemSpacing
 
