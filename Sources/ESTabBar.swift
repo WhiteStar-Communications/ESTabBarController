@@ -249,7 +249,7 @@ internal extension ESTabBar /* Layout */ {
         if layoutBaseSystem {
             let count = max(visibleCount, 1)
             let xStart = itemEdgeInsets.left
-            let y = itemEdgeInsets.top - 4
+            let y = itemEdgeInsets.top
             let width = bounds.width - itemEdgeInsets.left - itemEdgeInsets.right
             let height = bounds.height - itemEdgeInsets.top - itemEdgeInsets.bottom
             let eachWidth = itemWidth == 0.0 ? width / CGFloat(count) : itemWidth

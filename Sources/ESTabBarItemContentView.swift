@@ -227,96 +227,141 @@ open class ESTabBarItemContentView: UIView {
     }
     
     open func updateLayout() {
-        let w = self.bounds.size.width
-        let h = self.bounds.size.height
-        
-        imageView.isHidden = (imageView.image == nil)
-        titleLabel.isHidden = (titleLabel.text == nil)
+        let w = bounds.width
+        let h = bounds.height
 
-        if self.itemContentMode == .alwaysTemplate {
-            var s: CGFloat = 0.0 // image size
-            var f: CGFloat = 0.0 // font
+        imageView.isHidden = imageView.image == nil
+        titleLabel.isHidden = titleLabel.text == nil
+
+        if itemContentMode == .alwaysTemplate {
+            var s: CGFloat = 0.0
+            var f: CGFloat = 0.0
+
             var isLandscape = false
             if let keyWindow = UIApplication.shared.keyWindow {
                 isLandscape = keyWindow.bounds.width > keyWindow.bounds.height
             }
-            let isWide = isLandscape || traitCollection.horizontalSizeClass == .regular // is landscape or regular
+
+            let isWide = isLandscape || traitCollection.horizontalSizeClass == .regular
+
             if #available(iOS 11.0, *), isWide {
-                s = UIScreen.main.scale == 3.0 ? 23.0 : 20.0
-                f = UIScreen.main.scale == 3.0 ? 13.0 : 12.0
+                s = UIScreen.main.scale == 3.0 ? 21.0 : 20.0
+                f = UIScreen.main.scale == 3.0 ? 12.0 : 11.0
             } else {
-                s = 23.0
+                s = 20.0
                 f = 10.0
             }
-            
+
             if !imageView.isHidden && !titleLabel.isHidden {
                 titleLabel.font = UIFont.systemFont(ofSize: f)
                 titleLabel.sizeToFit()
+
                 if #available(iOS 11.0, *), isWide {
-                    titleLabel.frame = CGRect.init(x: (w - titleLabel.bounds.size.width) / 2.0 + (UIScreen.main.scale == 3.0 ? 14.25 : 12.25) + titlePositionAdjustment.horizontal,
-                                                   y: (h - titleLabel.bounds.size.height) / 2.0 + titlePositionAdjustment.vertical,
-                                                   width: titleLabel.bounds.size.width,
-                                                   height: titleLabel.bounds.size.height)
-                    imageView.frame = CGRect.init(x: titleLabel.frame.origin.x - s - (UIScreen.main.scale == 3.0 ? 6.0 : 5.0),
-                                                  y: (h - s) / 2.0,
-                                                  width: s,
-                                                  height: s)
+                    titleLabel.frame = CGRect(
+                        x: (w - titleLabel.bounds.width) / 2.0 + (UIScreen.main.scale == 3.0 ? 14.25 : 12.25) + titlePositionAdjustment.horizontal,
+                        y: (h - titleLabel.bounds.height) / 2.0 + titlePositionAdjustment.vertical,
+                        width: titleLabel.bounds.width,
+                        height: titleLabel.bounds.height
+                    )
+
+                    imageView.frame = CGRect(
+                        x: titleLabel.frame.minX - s - (UIScreen.main.scale == 3.0 ? 6.0 : 5.0),
+                        y: (h - s) / 2.0,
+                        width: s,
+                        height: s
+                    )
                 } else {
-                    titleLabel.frame = CGRect.init(x: (w - titleLabel.bounds.size.width) / 2.0 + titlePositionAdjustment.horizontal,
-                                                   y: h - titleLabel.bounds.size.height - 1.0 + titlePositionAdjustment.vertical,
-                                                   width: titleLabel.bounds.size.width,
-                                                   height: titleLabel.bounds.size.height)
-                    imageView.frame = CGRect.init(x: (w - s) / 2.0,
-                                                  y: (h - s) / 2.0 - 6.0,
-                                                  width: s,
-                                                  height: s)
+                    imageView.frame = CGRect(
+                        x: (w - s) / 2.0,
+                        y: 8.0,
+                        width: s,
+                        height: s
+                    )
+
+                    titleLabel.frame = CGRect(
+                        x: (w - titleLabel.bounds.width) / 2.0 + titlePositionAdjustment.horizontal,
+                        y: imageView.frame.maxY + 3.0 + titlePositionAdjustment.vertical,
+                        width: titleLabel.bounds.width,
+                        height: titleLabel.bounds.height
+                    )
                 }
             } else if !imageView.isHidden {
-                imageView.frame = CGRect.init(x: (w - s) / 2.0,
-                                              y: (h - s) / 2.0,
-                                              width: s,
-                                              height: s)
+                imageView.frame = CGRect(
+                    x: (w - s) / 2.0,
+                    y: (h - s) / 2.0,
+                    width: s,
+                    height: s
+                )
             } else if !titleLabel.isHidden {
                 titleLabel.font = UIFont.systemFont(ofSize: f)
                 titleLabel.sizeToFit()
-                titleLabel.frame = CGRect.init(x: (w - titleLabel.bounds.size.width) / 2.0 + titlePositionAdjustment.horizontal,
-                                               y: (h - titleLabel.bounds.size.height) / 2.0 + titlePositionAdjustment.vertical,
-                                               width: titleLabel.bounds.size.width,
-                                               height: titleLabel.bounds.size.height)
+                titleLabel.frame = CGRect(
+                    x: (w - titleLabel.bounds.width) / 2.0 + titlePositionAdjustment.horizontal,
+                    y: (h - titleLabel.bounds.height) / 2.0 + titlePositionAdjustment.vertical,
+                    width: titleLabel.bounds.width,
+                    height: titleLabel.bounds.height
+                )
             }
-            
-            if let _ = badgeView.superview {
-                let size = badgeView.sizeThatFits(self.frame.size)
+
+            if badgeView.superview != nil {
+                let size = badgeView.sizeThatFits(frame.size)
+
                 if #available(iOS 11.0, *), isWide {
-                    badgeView.frame = CGRect.init(origin: CGPoint.init(x: imageView.frame.midX - 3 + badgeOffset.horizontal, y: imageView.frame.midY + 3 + badgeOffset.vertical), size: size)
+                    badgeView.frame = CGRect(
+                        origin: CGPoint(
+                            x: imageView.frame.midX - 3 + badgeOffset.horizontal,
+                            y: imageView.frame.midY + 3 + badgeOffset.vertical
+                        ),
+                        size: size
+                    )
                 } else {
-                    badgeView.frame = CGRect.init(origin: CGPoint.init(x: w / 2.0 + badgeOffset.horizontal, y: h / 2.0 + badgeOffset.vertical), size: size)
+                    badgeView.frame = CGRect(
+                        origin: CGPoint(
+                            x: w / 2.0 + badgeOffset.horizontal,
+                            y: h / 2.0 + badgeOffset.vertical
+                        ),
+                        size: size
+                    )
                 }
+
                 badgeView.setNeedsLayout()
             }
         } else {
             if !imageView.isHidden && !titleLabel.isHidden {
+                titleLabel.font = UIFont.systemFont(ofSize: 10.0)
                 titleLabel.sizeToFit()
                 imageView.sizeToFit()
-                titleLabel.frame = CGRect.init(x: (w - titleLabel.bounds.size.width) / 2.0 + titlePositionAdjustment.horizontal,
-                                               y: h - titleLabel.bounds.size.height - 1.0 + titlePositionAdjustment.vertical,
-                                               width: titleLabel.bounds.size.width,
-                                               height: titleLabel.bounds.size.height)
-                imageView.frame = CGRect.init(x: (w - imageView.bounds.size.width) / 2.0,
-                                              y: (h - imageView.bounds.size.height) / 2.0 - 6.0,
-                                              width: imageView.bounds.size.width,
-                                              height: imageView.bounds.size.height)
+
+                imageView.frame = CGRect(
+                    x: (w - imageView.bounds.width) / 2.0,
+                    y: 8.0,
+                    width: imageView.bounds.width,
+                    height: imageView.bounds.height
+                )
+
+                titleLabel.frame = CGRect(
+                    x: (w - titleLabel.bounds.width) / 2.0 + titlePositionAdjustment.horizontal,
+                    y: imageView.frame.maxY + 3.0 + titlePositionAdjustment.vertical,
+                    width: titleLabel.bounds.width,
+                    height: titleLabel.bounds.height
+                )
             } else if !imageView.isHidden {
                 imageView.sizeToFit()
-                imageView.center = CGPoint.init(x: w / 2.0, y: h / 2.0)
+                imageView.center = CGPoint(x: w / 2.0, y: h / 2.0)
             } else if !titleLabel.isHidden {
                 titleLabel.sizeToFit()
-                titleLabel.center = CGPoint.init(x: w / 2.0, y: h / 2.0)
+                titleLabel.center = CGPoint(x: w / 2.0, y: h / 2.0)
             }
-            
-            if let _ = badgeView.superview {
-                let size = badgeView.sizeThatFits(self.frame.size)
-                badgeView.frame = CGRect.init(origin: CGPoint.init(x: w / 2.0 + badgeOffset.horizontal, y: h / 2.0 + badgeOffset.vertical), size: size)
+
+            if badgeView.superview != nil {
+                let size = badgeView.sizeThatFits(frame.size)
+                badgeView.frame = CGRect(
+                    origin: CGPoint(
+                        x: w / 2.0 + badgeOffset.horizontal,
+                        y: h / 2.0 + badgeOffset.vertical
+                    ),
+                    size: size
+                )
                 badgeView.setNeedsLayout()
             }
         }
