@@ -181,7 +181,7 @@ open class ESTabBar: UITabBar {
 
 internal extension ESTabBar /* Layout */ {
     func updateLayout() {
-        guard self.items != nil else {
+        guard let tabBarItems = self.items else {
             ESTabBarController.printError("empty items")
             return
         }
@@ -207,17 +207,33 @@ internal extension ESTabBar /* Layout */ {
             return
         }
 
-        // Hide UIKit's private/system tab bar buttons completely.
+        // Hide UIKit's private tab bar buttons.
         for button in tabBarButtons {
             button.isHidden = true
             button.alpha = 0.0
             button.isUserInteractionEnabled = false
         }
 
-        for container in containers {
-            container.isHidden = false
-            container.alpha = 1.0
-            container.isUserInteractionEnabled = true
+        let visibleCount = min(containers.count, tabBarItems.count)
+
+        for (idx, container) in containers.enumerated() {
+            let shouldShow = idx < visibleCount
+
+            container.isHidden = !shouldShow
+            container.alpha = shouldShow ? 1.0 : 0.0
+            container.isUserInteractionEnabled = shouldShow
+
+            // Hide duplicate content views inside the same container.
+            // Keep only the last custom content view.
+            let contentViews = container.subviews.filter {
+                String(describing: type(of: $0)).contains("ContentView")
+            }
+
+            if contentViews.count > 1 {
+                for oldView in contentViews.dropLast() {
+                    oldView.removeFromSuperview()
+                }
+            }
         }
 
         var layoutBaseSystem = true
@@ -231,7 +247,7 @@ internal extension ESTabBar /* Layout */ {
         }
 
         if layoutBaseSystem {
-            let count = max(containers.count, 1)
+            let count = max(visibleCount, 1)
             let xStart = itemEdgeInsets.left
             let y = itemEdgeInsets.top - 4
             let width = bounds.width - itemEdgeInsets.left - itemEdgeInsets.right
@@ -241,7 +257,8 @@ internal extension ESTabBar /* Layout */ {
 
             var x = xStart
 
-            for container in containers {
+            for idx in 0..<visibleCount {
+                let container = containers[idx]
                 container.frame = CGRect(x: x, y: y, width: eachWidth, height: height)
                 x += eachWidth + eachSpacing
             }
@@ -255,10 +272,11 @@ internal extension ESTabBar /* Layout */ {
 
             let width = bounds.width - itemEdgeInsets.left - itemEdgeInsets.right
             let height = bounds.height - y - itemEdgeInsets.bottom
-            let eachWidth = itemWidth == 0.0 ? width / CGFloat(max(containers.count, 1)) : itemWidth
+            let eachWidth = itemWidth == 0.0 ? width / CGFloat(max(visibleCount, 1)) : itemWidth
             let eachSpacing = itemSpacing == 0.0 ? 0.0 : itemSpacing
 
-            for container in containers {
+            for idx in 0..<visibleCount {
+                let container = containers[idx]
                 container.frame = CGRect(x: x, y: y, width: eachWidth, height: height)
                 x += eachWidth + eachSpacing
             }
